@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Russian Kettlebell Program</title>
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f0e0d; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #0f0e0d; }
+    ::-webkit-scrollbar-thumb { background: #3a342d; border-radius: 2px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const palette = {
+      bg: "#0f0e0d",
+      surface: "#181614",
+      border: "#2a2520",
+      accent: "#c8392b",
+      accentDim: "#7a211a",
+      gold: "#b8922a",
+      text: "#e8e0d4",
+      muted: "#7a6f62",
+      dimmer: "#3a342d",
+      doneBg: "#0d1f0d",
+      doneBorder: "#2d5a2d",
+      doneText: "#4a9e4a",
+    };
+
+    const getToday = () => new Date().toISOString().split("T")[0];
+
+    const makeLabels = (count, type) => {
+      if (type === "bilateral") {
+        const arr = [];
+        for (let i = 0; i < count; i += 2) {
+          const n = i / 2 + 1;
+          arr.push(`L${n}`, `R${n}`);
+        }
+        return arr;
+      }
+      if (type === "ladder") return Array.from({ length: count }, (_, i) => `Ladder ${i + 1}`);
+      if (type === "emom") return Array.from({ length: count }, (_, i) => `R${i + 1}`);
+      return Array.from({ length: count }, (_, i) => `Set ${i + 1}`);
+    };
+
+    const program = {
+      principles: [
+        { ru: "Никогда до отказа", en: "Never to failure", note: "Always leave 2–3 reps in reserve. Quality degrades before you notice." },
+        { ru: "Лестница", en: "The Ladder", note: "1 rep, rest. 2 reps, rest. 3 reps, rest. That's one rung. Volume without grinding." },
+        { ru: "Напряжение и расслабление", en: "Tension & relaxation", note: "Max tension at lockout, active relaxation in the swing. Two skills, not one." },
+        { ru: "Частота", en: "Frequency over intensity", note: "Practice the movement often. Don't annihilate yourself once a week." },
+        { ru: "Волновая нагрузка", en: "Wave loading", note: "3 weeks build. 1 week deload. The body grows during recovery, not training." },
+      ],
+      days: {
+        A: {
+          label: "Day A — Strength",
+          days: "Monday & Friday",
+          warmup: "5 min: Hip hinge prying (bodyweight squat prying knees apart), halos 5 each side",
+          blocks: [
+            { name: "Turkish Get-Up", sets: "3 each side", setCount: 6, setType: "bilateral", note: "Deliberate. 60–90 sec per rep. This is practice, not conditioning.", time: "~12 min" },
+            { name: "Clean & Press — Ladder", sets: "3 ladders × (1, 2, 3) each side", setCount: 3, setType: "ladder", note: "One rung: 1L press, 1R press, rest. 2L, 2R, rest. 3L, 3R, rest. That's one ladder. Rest 60–90 sec between rungs.", time: "~15 min" },
+            { name: "Goblet Squat", sets: "3 × 5", setCount: 3, setType: "standard", note: "Deep, controlled descent. Pause at bottom. Elbows inside knees.", time: "~6 min" },
+            { name: "Bent-Over Row", sets: "3 × 5 each side", setCount: 6, setType: "bilateral", note: "Brace like you're about to take a punch. Pull the elbow back, not up.", time: "~6 min" },
+          ],
+          total: "~40 min",
+        },
+        B: {
+          label: "Day B — Power",
+          days: "Wednesday (full) & Saturday (half-volume)",
+          warmup: "3 min: Deadlift practice from the floor, hip hinge groove",
+          blocks: [
+            { name: "Two-Hand Swing — EMOM", sets: "10 sets × 10 reps", setCount: 10, setType: "emom", note: "Start the clock. 10 hard swings. Rest what remains of the minute. The hinge is everything — not a squat, not a back exercise.", time: "~10 min" },
+            { name: "One-Hand Swing", sets: "5 sets × 5 each side", setCount: 10, setType: "bilateral", note: "Same hip snap. Let the bell arc naturally. Don't muscle it up.", time: "~8 min" },
+            { name: "Snatch", sets: "3×3–5 each side (see weeks tab)", setCount: 6, setType: "bilateral", note: "Week 1: omit. Week 2: 3×3 each side. Week 3+: 3×5 each side. Punch through at the top — don't flip the bell over the wrist.", time: "~10 min" },
+          ],
+          saturdayNote: "Saturday: half volume — 5×10 swings EMOM, 2 TGU each side, no snatch. Active recovery.",
+          total: "~30–35 min (Wed) / ~20 min (Sat)",
+        },
+      },
+      weeks: [
+        { week: 1, a: "3 ladders × (1, 2, 3). Learn the press. No snatch yet.", b: "2H swing 10×10. 1H swing 5×5. No snatch.", feel: "Comfortable" },
+        { week: 2, a: "4 ladders × (1, 2, 3). Same movements.", b: "Same swings. Add snatch: 3×3 each side.", feel: "Moderate" },
+        { week: 3, a: "5 ladders × (1, 2, 3). This is the peak week.", b: "Snatch 3×5. Tighten swing rest if 60 sec feels easy.", feel: "Hard but clean" },
+        { week: 4, a: "2 ladders × (1, 2, 3). Deload. Don't skip it.", b: "5×10 swings only. No snatch. Move well, recover.", feel: "Easy by design" },
+      ],
+      progression: [
+        "When 5 ladders of (1,2,3) feel easy → extend to (1,2,3,4), drop back to 3 ladders",
+        "When (1,2,3,4) is solid × 5 ladders → extend to (1,2,3,4,5)",
+        "Snatch: build toward 5×5 consistently before adding sets",
+        "Target after 3–4 months: press ladders to 5, snatch 5×5 each side, clean 1H swings",
+        "When all of the above is solid: the 16kg is no longer a limitation. Consider 20kg.",
+      ],
+    };
+
+    // localStorage helpers
+    const storageGet = (key) => {
+      try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+    };
+    const storageSet = (key, value) => {
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+    };
+
+    function SectionLabel({ children }) {
+      return (
+        <div style={{ fontFamily: "'Courier New',monospace", fontSize: 10, letterSpacing: "0.3em", color: palette.accent, textTransform: "uppercase", marginBottom: 22, display: "flex", alignItems: "center", gap: 12 }}>
+          {children}
+          <div style={{ flex: 1, height: 1, background: palette.border }} />
+        </div>
+      );
+    }
+
+    function App() {
+      const [tab, setTab] = useState("days");
+      const [dayView, setDayView] = useState("A");
+      const [setsState, setSetsState] = useState({});
+      const [dialog, setDialog] = useState(null);
+      const longPressTimer = useRef(null);
+      const suppressClick = useRef(false);
+      const today = getToday();
+
+      useEffect(() => {
+        const state = {};
+        for (const [dt, day] of Object.entries(program.days)) {
+          for (let i = 0; i < day.blocks.length; i++) {
+            const stored = storageGet(`kb:${today}:${dt}:${i}`);
+            state[`${dt}:${i}`] = stored ?? Array(day.blocks[i].setCount).fill(false);
+          }
+        }
+        setSetsState(state);
+      }, []);
+
+      const toggleSet = (dayType, blockIndex, setIndex) => {
+        const key = `${dayType}:${blockIndex}`;
+        setSetsState((prev) => {
+          const curr = prev[key] || [];
+          const next = curr.map((v, i) => (i === setIndex ? !v : v));
+          storageSet(`kb:${today}:${dayType}:${blockIndex}`, next);
+          return { ...prev, [key]: next };
+        });
+      };
+
+      const markAllDone = (dayType, blockIndex) => {
+        const block = program.days[dayType].blocks[blockIndex];
+        const next = Array(block.setCount).fill(true);
+        setSetsState((prev) => ({ ...prev, [`${dayType}:${blockIndex}`]: next }));
+        storageSet(`kb:${today}:${dayType}:${blockIndex}`, next);
+      };
+
+      const isBlockDone = (dayType, blockIndex) => {
+        const sets = setsState[`${dayType}:${blockIndex}`] || [];
+        return sets.length > 0 && sets.every(Boolean);
+      };
+
+      const completedCount = (dayType, blockIndex) =>
+        (setsState[`${dayType}:${blockIndex}`] || []).filter(Boolean).length;
+
+      const startPress = (dayType, blockIndex) => {
+        suppressClick.current = false;
+        longPressTimer.current = setTimeout(() => {
+          suppressClick.current = true;
+          markAllDone(dayType, blockIndex);
+        }, 600);
+      };
+
+      const endPress = () => clearTimeout(longPressTimer.current);
+
+      const handleBlockClick = (dayType, blockIndex) => {
+        if (suppressClick.current) { suppressClick.current = false; return; }
+        setDialog({ dayType, blockIndex });
+      };
+
+      const dBlock = dialog ? program.days[dialog.dayType].blocks[dialog.blockIndex] : null;
+      const dSets = dialog ? (setsState[`${dialog.dayType}:${dialog.blockIndex}`] || []) : [];
+      const dLabels = dBlock ? makeLabels(dBlock.setCount, dBlock.setType) : [];
+      const dAllDone = dSets.length > 0 && dSets.every(Boolean);
+      const day = program.days[dayView];
+
+      const tabs = [
+        { id: "principles", label: "Principles" },
+        { id: "days", label: "Training Days" },
+        { id: "weeks", label: "4-Week Wave" },
+        { id: "progression", label: "Progression" },
+      ];
+
+      return (
+        <div style={{ background: palette.bg, color: palette.text, minHeight: "100vh", fontFamily: "'Georgia','Times New Roman',serif", paddingBottom: 80 }}>
+
+          {/* Header */}
+          <div style={{ borderBottom: `1px solid ${palette.border}`, padding: "40px 40px 32px", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse at 20% 50%, ${palette.accentDim}22 0%, transparent 60%)`, pointerEvents: "none" }} />
+            <div style={{ position: "relative" }}>
+              <div style={{ fontFamily: "'Courier New',monospace", fontSize: 11, letterSpacing: "0.25em", color: palette.accent, textTransform: "uppercase", marginBottom: 10 }}>
+                Soviet Kettlebell Method · 16 kg · 4 days/week
+              </div>
+              <h1 style={{ fontSize: "clamp(26px,5vw,44px)", fontWeight: "normal", lineHeight: 1.1, margin: "0 0 6px", letterSpacing: "-0.01em" }}>
+                Russian General<br />Fitness Program
+              </h1>
+              <div style={{ color: palette.muted, fontSize: 14, fontFamily: "'Courier New',monospace", letterSpacing: "0.05em" }}>
+                Intermediate · Single bell · Pavel tradition
+              </div>
+            </div>
+          </div>
+
+          {/* Schedule strip */}
+          <div style={{ padding: "14px 40px", borderBottom: `1px solid ${palette.border}`, display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+            {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((d) => {
+              const isA = ["Mon","Fri"].includes(d);
+              const isB = ["Wed","Sat"].includes(d);
+              const active = isA || isB;
+              return (
+                <div key={d} style={{ padding: "5px 11px", background: active ? (isA ? `${palette.accent}22` : `${palette.gold}22`) : "transparent", border: `1px solid ${active ? (isA ? palette.accentDim : `${palette.gold}55`) : palette.border}`, fontFamily: "'Courier New',monospace", fontSize: 11, color: active ? (isA ? palette.accent : palette.gold) : palette.dimmer, letterSpacing: "0.1em" }}>
+                  {d}{active ? (isA ? " A" : " B") : ""}
+                </div>
+              );
+            })}
+            <div style={{ marginLeft: 8, fontSize: 11, color: palette.muted, fontFamily: "'Courier New',monospace" }}>
+              <span style={{ color: palette.accent }}>A</span> Strength &nbsp;
+              <span style={{ color: palette.gold }}>B</span> Power
+            </div>
+          </div>
+
+          {/* Nav */}
+          <div style={{ display: "flex", borderBottom: `1px solid ${palette.border}`, overflowX: "auto" }}>
+            {tabs.map((t) => (
+              <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "13px 18px", background: "none", border: "none", borderBottom: tab === t.id ? `2px solid ${palette.accent}` : "2px solid transparent", color: tab === t.id ? palette.text : palette.muted, cursor: "pointer", fontFamily: "'Courier New',monospace", fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", whiteSpace: "nowrap", transition: "color 0.15s", marginBottom: -1 }}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Content */}
+          <div style={{ maxWidth: 760, margin: "0 auto", padding: "36px 40px 0" }}>
+
+            {tab === "principles" && (
+              <div>
+                <SectionLabel>Foundations</SectionLabel>
+                {program.principles.map((p, i) => (
+                  <div key={i} style={{ borderLeft: `2px solid ${palette.dimmer}`, padding: "14px 18px", marginBottom: 10, transition: "border-color 0.15s" }}
+                    onMouseEnter={e => e.currentTarget.style.borderLeftColor = palette.accent}
+                    onMouseLeave={e => e.currentTarget.style.borderLeftColor = palette.dimmer}
+                  >
+                    <div style={{ color: palette.gold, fontStyle: "italic", fontSize: 13, marginBottom: 3 }}>{p.ru}</div>
+                    <div style={{ fontSize: 15, fontWeight: "bold", marginBottom: 5 }}>{p.en}</div>
+                    <div style={{ color: palette.muted, fontSize: 13, lineHeight: 1.6 }}>{p.note}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {tab === "days" && (
+              <div>
+                <SectionLabel>Sessions</SectionLabel>
+                <div style={{ display: "flex", gap: 8, marginBottom: 22 }}>
+                  {["A","B"].map((d) => (
+                    <button key={d} onClick={() => setDayView(d)} style={{ padding: "9px 18px", background: dayView === d ? palette.accent : palette.surface, border: `1px solid ${dayView === d ? palette.accent : palette.border}`, color: dayView === d ? "#fff" : palette.muted, cursor: "pointer", fontFamily: "'Courier New',monospace", fontSize: 12, letterSpacing: "0.1em", transition: "all 0.15s" }}>
+                      Day {d} — {d === "A" ? "Strength" : "Power"}
+                    </button>
+                  ))}
+                </div>
+                <div style={{ color: palette.muted, fontFamily: "'Courier New',monospace", fontSize: 12, marginBottom: 16 }}>{day.days}</div>
+                <div style={{ background: palette.surface, border: `1px solid ${palette.border}`, padding: "12px 16px", marginBottom: 16 }}>
+                  <div style={{ color: palette.gold, fontFamily: "'Courier New',monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 5 }}>Warm-up</div>
+                  <div style={{ fontSize: 13, color: palette.muted, lineHeight: 1.6 }}>{day.warmup}</div>
+                </div>
+                <div style={{ color: palette.dimmer, fontFamily: "'Courier New',monospace", fontSize: 11, marginBottom: 12, letterSpacing: "0.05em" }}>
+                  tap to log sets · hold to mark complete
+                </div>
+                {day.blocks.map((b, i) => {
+                  const done = isBlockDone(dayView, i);
+                  const completed = completedCount(dayView, i);
+                  const total = b.setCount;
+                  return (
+                    <div key={i}
+                      onClick={() => handleBlockClick(dayView, i)}
+                      onPointerDown={() => startPress(dayView, i)}
+                      onPointerUp={endPress}
+                      onPointerLeave={endPress}
+                      style={{ border: `1px solid ${done ? palette.doneBorder : palette.border}`, marginBottom: 10, overflow: "hidden", cursor: "pointer", transition: "border-color 0.4s", userSelect: "none", WebkitUserSelect: "none" }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "14px 16px 12px", background: done ? palette.doneBg : palette.surface, transition: "background 0.4s" }}>
+                        <div>
+                          <div style={{ fontSize: 15, fontWeight: "bold", marginBottom: 3, color: done ? palette.doneText : palette.text, transition: "color 0.4s" }}>{b.name}</div>
+                          <div style={{ fontFamily: "'Courier New',monospace", fontSize: 11, color: done ? palette.doneText : palette.accent, letterSpacing: "0.05em", transition: "color 0.4s" }}>{b.sets}</div>
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, marginLeft: 12, flexShrink: 0 }}>
+                          {b.time && <div style={{ fontFamily: "'Courier New',monospace", fontSize: 11, color: palette.muted }}>{b.time}</div>}
+                          <div style={{ fontFamily: "'Courier New',monospace", fontSize: 11, color: done ? palette.doneText : palette.muted, transition: "color 0.4s" }}>
+                            {done ? "✓ done" : `${completed}/${total}`}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ height: 2, background: palette.dimmer }}>
+                        <div style={{ height: "100%", width: `${total > 0 ? (completed / total) * 100 : 0}%`, background: done ? palette.doneText : palette.accent, transition: "width 0.25s, background 0.4s" }} />
+                      </div>
+                      <div style={{ padding: "10px 16px 12px", fontSize: 12, color: palette.muted, lineHeight: 1.7, background: done ? `${palette.doneBg}cc` : "transparent", transition: "background 0.4s" }}>
+                        {b.note}
+                      </div>
+                    </div>
+                  );
+                })}
+                {day.saturdayNote && (
+                  <div style={{ background: `${palette.gold}11`, border: `1px solid ${palette.gold}33`, padding: "12px 16px", marginTop: 14, fontSize: 13, color: palette.muted, lineHeight: 1.6 }}>
+                    <div style={{ color: palette.gold, fontFamily: "'Courier New',monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 5 }}>Saturday (half-volume)</div>
+                    {day.saturdayNote}
+                  </div>
+                )}
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 14, fontFamily: "'Courier New',monospace", fontSize: 12, color: palette.muted }}>
+                  Total: {day.total}
+                </div>
+              </div>
+            )}
+
+            {tab === "weeks" && (
+              <div>
+                <SectionLabel>4-Week Wave</SectionLabel>
+                <p style={{ color: palette.muted, fontSize: 13, lineHeight: 1.7, marginBottom: 26 }}>
+                  Build for three weeks, then pull back. The deload isn't optional — it's where adaptation happens. Skipping it is how you plateau or get hurt.
+                </p>
+                {program.weeks.map((w, i) => (
+                  <div key={i} style={{ borderLeft: `3px solid ${i === 3 ? palette.gold : i === 2 ? palette.accent : palette.dimmer}`, padding: "14px 18px", marginBottom: 10, background: palette.surface }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                      <div style={{ fontFamily: "'Courier New',monospace", fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: palette.accent }}>
+                        Week {w.week}{i === 3 ? " — Deload" : ""}
+                      </div>
+                      <div style={{ fontFamily: "'Courier New',monospace", fontSize: 11, color: i === 3 ? palette.gold : palette.muted, letterSpacing: "0.1em" }}>{w.feel}</div>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                      <div style={{ padding: "10px 12px", background: `${palette.accent}11`, border: `1px solid ${palette.accentDim}`, fontSize: 12, color: palette.muted, lineHeight: 1.5 }}>
+                        <div style={{ color: palette.accent, fontFamily: "'Courier New',monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 4 }}>Day A</div>
+                        {w.a}
+                      </div>
+                      <div style={{ padding: "10px 12px", background: `${palette.gold}11`, border: `1px solid ${palette.gold}44`, fontSize: 12, color: palette.muted, lineHeight: 1.5 }}>
+                        <div style={{ color: palette.gold, fontFamily: "'Courier New',monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 4 }}>Day B</div>
+                        {w.b}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {tab === "progression" && (
+              <div>
+                <SectionLabel>Long-term progression</SectionLabel>
+                <p style={{ color: palette.muted, fontSize: 13, lineHeight: 1.7, marginBottom: 26 }}>
+                  The ladder is the engine. Extend the ladder before adding bells. This is how the Soviets built work capacity without burning out lifters.
+                </p>
+                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                  {program.progression.map((item, i) => (
+                    <li key={i} style={{ display: "flex", gap: 14, padding: "13px 0", borderBottom: `1px solid ${palette.border}`, fontSize: 14, lineHeight: 1.6, alignItems: "flex-start" }}>
+                      <span style={{ color: palette.accent, fontFamily: "'Courier New',monospace", fontSize: 12, marginTop: 2, flexShrink: 0 }}>→</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div style={{ marginTop: 36, padding: 18, border: `1px solid ${palette.border}`, background: palette.surface }}>
+                  <div style={{ color: palette.accent, fontFamily: "'Courier New',monospace", fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 10 }}>A note on 16 kg</div>
+                  <p style={{ color: palette.muted, fontSize: 13, lineHeight: 1.7, margin: 0 }}>
+                    The bell doesn't need to feel heavy to work. Pavel built the entire Simple & Sinister system around a single moderate-weight bell. The variables are volume, density, and skill — not load. Respect the bell you have.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Dialog */}
+          {dialog && dBlock && (
+            <div onClick={() => setDialog(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 100, display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+              <div onClick={(e) => e.stopPropagation()} style={{ background: palette.surface, border: `1px solid ${palette.border}`, borderBottom: "none", width: "100%", maxWidth: 480, maxHeight: "78vh", display: "flex", flexDirection: "column", borderRadius: "12px 12px 0 0" }}>
+                <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 6px" }}>
+                  <div style={{ width: 36, height: 4, borderRadius: 2, background: palette.dimmer }} />
+                </div>
+                <div style={{ padding: "8px 20px 14px", borderBottom: `1px solid ${palette.border}`, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div>
+                    <div style={{ fontSize: 17, fontWeight: "bold", marginBottom: 4 }}>{dBlock.name}</div>
+                    <div style={{ fontFamily: "'Courier New',monospace", fontSize: 12, color: dAllDone ? palette.doneText : palette.accent, letterSpacing: "0.05em", transition: "color 0.3s" }}>{dBlock.sets}</div>
+                  </div>
+                  <button onClick={() => setDialog(null)} style={{ background: "none", border: "none", color: palette.muted, fontSize: 26, cursor: "pointer", lineHeight: 1, padding: "0 0 0 16px", marginTop: -2 }}>×</button>
+                </div>
+                <div style={{ height: 2, background: palette.dimmer, flexShrink: 0 }}>
+                  <div style={{ height: "100%", width: `${dSets.length > 0 ? (dSets.filter(Boolean).length / dSets.length) * 100 : 0}%`, background: dAllDone ? palette.doneText : palette.accent, transition: "width 0.2s, background 0.3s" }} />
+                </div>
+                <div style={{ overflowY: "auto", padding: "16px 16px 8px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))", gap: 8 }}>
+                    {dSets.map((done, i) => (
+                      <button key={i} onClick={() => toggleSet(dialog.dayType, dialog.blockIndex, i)}
+                        style={{ padding: "14px 6px 12px", background: done ? palette.doneBg : palette.bg, border: `1px solid ${done ? palette.doneBorder : palette.border}`, color: done ? palette.doneText : palette.muted, fontFamily: "'Courier New',monospace", fontSize: 12, letterSpacing: "0.05em", cursor: "pointer", transition: "all 0.15s", textAlign: "center", lineHeight: 1 }}>
+                        <div>{dLabels[i]}</div>
+                        <div style={{ fontSize: 16, marginTop: 6, opacity: done ? 1 : 0.15 }}>✓</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ padding: "10px 16px 24px", textAlign: "center", fontFamily: "'Courier New',monospace", fontSize: 12, letterSpacing: "0.12em", color: dAllDone ? palette.doneText : "transparent", transition: "color 0.35s" }}>
+                  ALL SETS COMPLETE
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
