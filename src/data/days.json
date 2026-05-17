@@ -1,0 +1,75 @@
+{
+  "A": {
+    "label": "Day A — Strength",
+    "days": "Monday & Friday",
+    "warmup": "5 min: Hip hinge prying (bodyweight squat prying knees apart), halos 5 each side",
+    "blocks": [
+      {
+        "name": "Turkish Get-Up",
+        "sets": "3 each side",
+        "setCount": 6,
+        "setType": "bilateral",
+        "note": "Deliberate. 60–90 sec per rep. This is practice, not conditioning.",
+        "time": "~12 min"
+      },
+      {
+        "name": "Clean & Press — Ladder",
+        "sets": "3 ladders × (1, 2, 3) each side",
+        "setCount": 3,
+        "setType": "ladder",
+        "note": "One rung: 1L press, 1R press, rest. 2L, 2R, rest. 3L, 3R, rest. That's one ladder. Rest 60–90 sec between rungs.",
+        "time": "~15 min"
+      },
+      {
+        "name": "Goblet Squat",
+        "sets": "3 × 5",
+        "setCount": 3,
+        "setType": "standard",
+        "note": "Deep, controlled descent. Pause at bottom. Elbows inside knees.",
+        "time": "~6 min"
+      },
+      {
+        "name": "Bent-Over Row",
+        "sets": "3 × 5 each side",
+        "setCount": 6,
+        "setType": "bilateral",
+        "note": "Brace like you're about to take a punch. Pull the elbow back, not up.",
+        "time": "~6 min"
+      }
+    ],
+    "total": "~40 min"
+  },
+  "B": {
+    "label": "Day B — Power",
+    "days": "Wednesday (full) & Saturday (half-volume)",
+    "warmup": "3 min: Deadlift practice from the floor, hip hinge groove",
+    "blocks": [
+      {
+        "name": "Two-Hand Swing — EMOM",
+        "sets": "10 sets × 10 reps",
+        "setCount": 10,
+        "setType": "emom",
+        "note": "Start the clock. 10 hard swings. Rest what remains of the minute. The hinge is everything — not a squat, not a back exercise.",
+        "time": "~10 min"
+      },
+      {
+        "name": "One-Hand Swing",
+        "sets": "5 sets × 5 each side",
+        "setCount": 10,
+        "setType": "bilateral",
+        "note": "Same hip snap. Let the bell arc naturally. Don't muscle it up.",
+        "time": "~8 min"
+      },
+      {
+        "name": "Snatch",
+        "sets": "3×3–5 each side (see weeks tab)",
+        "setCount": 6,
+        "setType": "bilateral",
+        "note": "Week 1: omit. Week 2: 3×3 each side. Week 3+: 3×5 each side. Punch through at the top — don't flip the bell over the wrist.",
+        "time": "~10 min"
+      }
+    ],
+    "saturdayNote": "Saturday: half volume — 5×10 swings EMOM, 2 TGU each side, no snatch. Active recovery.",
+    "total": "~30–35 min (Wed) / ~20 min (Sat)"
+  }
+}
