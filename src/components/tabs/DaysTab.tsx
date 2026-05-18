@@ -3,6 +3,7 @@ import { palette } from "../../theme";
 import { SectionLabel } from "../SectionLabel";
 import { ExerciseBlock } from "../ExerciseBlock";
 import { SetDialog } from "../SetDialog";
+import { HoldToResetButton } from "../HoldToResetButton";
 import type { Day, DayKey, SetsState, DialogState } from "../../types";
 
 interface Props {
@@ -10,9 +11,10 @@ interface Props {
   setsState: SetsState;
   onToggleSet: (dayType: DayKey, blockIndex: number, setIndex: number) => void;
   onMarkAllDone: (dayType: DayKey, blockIndex: number) => void;
+  onResetDay: (dayType: DayKey) => void;
 }
 
-export function DaysTab({ days, setsState, onToggleSet, onMarkAllDone }: Props) {
+export function DaysTab({ days, setsState, onToggleSet, onMarkAllDone, onResetDay }: Props) {
   const [dayView, setDayView] = useState<DayKey>("A");
   const [dialog, setDialog] = useState<DialogState | null>(null);
 
@@ -31,6 +33,9 @@ export function DaysTab({ days, setsState, onToggleSet, onMarkAllDone }: Props) 
 
   const dialogBlock = dialog ? days[dialog.dayType].blocks[dialog.blockIndex] : null;
   const dialogSets = dialog ? getSets(dialog.dayType, dialog.blockIndex) : [];
+
+  const allBlocksDone =
+    day.blocks.length > 0 && day.blocks.every((_, i) => isBlockDone(dayView, i));
 
   return (
     <div>
@@ -58,8 +63,14 @@ export function DaysTab({ days, setsState, onToggleSet, onMarkAllDone }: Props) 
         ))}
       </div>
 
-      <div style={{ color: palette.muted, fontFamily: "'Courier New', monospace", fontSize: 12, marginBottom: 16 }}>
-        {day.days}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, fontFamily: "'Courier New', monospace", fontSize: 12, color: palette.muted }}>
+        <span>{day.days}</span>
+        {allBlocksDone && (
+          <HoldToResetButton
+            label={`Hold to reset Day ${dayView}`}
+            onComplete={() => onResetDay(dayView)}
+          />
+        )}
       </div>
 
       <div style={{ background: palette.surface, border: `1px solid ${palette.border}`, padding: "12px 16px", marginBottom: 16 }}>

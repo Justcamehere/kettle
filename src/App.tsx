@@ -70,6 +70,18 @@ export function App() {
     });
   };
 
+  const resetDay = (dayType: DayKey) => {
+    setSetsState((prev) => {
+      const next = { ...prev };
+      daysData[dayType].blocks.forEach((block, i) => {
+        const cleared = Array(block.setCount).fill(false) as boolean[];
+        next[`${dayType}:${i}`] = cleared;
+        saveSets(today, dayType, i, cleared);
+      });
+      return next;
+    });
+  };
+
   return (
     <div
       style={{
@@ -231,6 +243,7 @@ export function App() {
             setsState={setsState}
             onToggleSet={toggleSet}
             onMarkAllDone={markAllDone}
+            onResetDay={resetDay}
           />
         )}
         {tab === "weeks" && <WeeksTab weeks={weeksData} />}
