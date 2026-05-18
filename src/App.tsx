@@ -6,7 +6,7 @@ import { PrinciplesTab } from "./components/tabs/PrinciplesTab";
 import { DaysTab } from "./components/tabs/DaysTab";
 import { WeeksTab } from "./components/tabs/WeeksTab";
 import { ProgressionTab } from "./components/tabs/ProgressionTab";
-import type { DayKey, TabId, SetsState } from "./types";
+import type { DayKey, Day, TabId, SetsState } from "./types";
 
 import principlesData from "./data/principles.json";
 import daysData from "./data/days.json";
@@ -227,7 +227,7 @@ export function App() {
         {tab === "principles" && <PrinciplesTab principles={principlesData} />}
         {tab === "days" && (
           <DaysTab
-            days={daysData as Record<DayKey, typeof daysData.A>}
+            days={daysData as unknown as Record<DayKey, Day>}
             setsState={setsState}
             onToggleSet={toggleSet}
             onMarkAllDone={markAllDone}
