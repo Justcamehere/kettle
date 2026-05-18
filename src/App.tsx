@@ -119,8 +119,6 @@ export function App() {
               letterSpacing: "-0.01em",
             }}
           >
-            Russian General
-            <br />
             Fitness Program
           </h1>
           <div
