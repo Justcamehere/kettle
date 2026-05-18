@@ -23,16 +23,21 @@ export function ExerciseBlock({
 }: Props) {
   const triggerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animStartRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pressStartRef = useRef<number>(0);
+  const justTriggeredRef = useRef(false);
   const suppressRef = useRef(false);
   const [holding, setHolding] = useState(false);
   const [holdColor, setHoldColor] = useState<string>(palette.doneBorder);
 
   const handlePointerDown = () => {
     suppressRef.current = false;
+    justTriggeredRef.current = false;
+    pressStartRef.current = Date.now();
     setHoldColor(done ? palette.accent : palette.doneBorder);
     animStartRef.current = setTimeout(() => setHolding(true), HOLD_DELAY_MS);
     triggerRef.current = setTimeout(() => {
       suppressRef.current = true;
+      justTriggeredRef.current = true;
       setHolding(false);
       onLongPress();
     }, HOLD_MS);
@@ -46,6 +51,9 @@ export function ExerciseBlock({
     if (triggerRef.current) {
       clearTimeout(triggerRef.current);
       triggerRef.current = null;
+    }
+    if (Date.now() - pressStartRef.current >= HOLD_DELAY_MS) {
+      suppressRef.current = true;
     }
     setHolding(false);
   };
@@ -82,16 +90,20 @@ export function ExerciseBlock({
       <div
         style={{
           position: "absolute",
-          inset: 0,
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 3,
           background: holdColor,
           transformOrigin: "left center",
           transform: `scaleX(${holding ? 1 : 0})`,
           transition: holding
             ? `transform ${ANIM_MS}ms linear`
-            : "transform 0.15s ease-out",
+            : justTriggeredRef.current
+              ? "none"
+              : "transform 0.15s ease-out",
           pointerEvents: "none",
-          opacity: 0.55,
-          zIndex: 0,
+          zIndex: 2,
         }}
       />
       <div
