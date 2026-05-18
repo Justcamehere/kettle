@@ -49,6 +49,38 @@ export function App() {
     setSetsState(state);
   }, [today]);
 
+  useEffect(() => {
+    let lock: WakeLockSentinel | null = null;
+    let cancelled = false;
+
+    const request = async () => {
+      if (!("wakeLock" in navigator)) return;
+      try {
+        const next = await navigator.wakeLock.request("screen");
+        if (cancelled) {
+          next.release();
+          return;
+        }
+        lock = next;
+      } catch {
+        // ignore — user may have denied or page not visible
+      }
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") request();
+    };
+
+    request();
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisibility);
+      lock?.release();
+    };
+  }, []);
+
   const toggleSet = (dayType: DayKey, blockIndex: number, setIndex: number) => {
     setSetsState((prev) => {
       const key = `${dayType}:${blockIndex}`;
