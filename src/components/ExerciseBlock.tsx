@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { palette } from "../theme";
 import type { Block } from "../types";
 
@@ -10,20 +10,35 @@ interface Props {
   onLongPress: () => void;
 }
 
-export function ExerciseBlock({ block, completed, done, onPress, onLongPress }: Props) {
+const HOLD_MS = 600;
+
+export function ExerciseBlock({
+  block,
+  completed,
+  done,
+  onPress,
+  onLongPress,
+}: Props) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suppressRef = useRef(false);
+  const [holding, setHolding] = useState(false);
 
   const handlePointerDown = () => {
     suppressRef.current = false;
+    setHolding(true);
     timerRef.current = setTimeout(() => {
       suppressRef.current = true;
+      setHolding(false);
       onLongPress();
-    }, 600);
+    }, HOLD_MS);
   };
 
   const handlePointerUp = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    setHolding(false);
   };
 
   const handleClick = () => {
@@ -43,6 +58,7 @@ export function ExerciseBlock({ block, completed, done, onPress, onLongPress }: 
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerUp}
       style={{
+        position: "relative",
         border: `1px solid ${done ? palette.doneBorder : palette.border}`,
         marginBottom: 10,
         overflow: "hidden",
@@ -50,8 +66,24 @@ export function ExerciseBlock({ block, completed, done, onPress, onLongPress }: 
         transition: "border-color 0.4s",
         userSelect: "none",
         WebkitUserSelect: "none",
+        touchAction: "none",
       }}
     >
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: palette.doneBorder,
+          transformOrigin: "left center",
+          transform: `scaleX(${holding ? 1 : 0})`,
+          transition: holding
+            ? `transform ${HOLD_MS}ms linear`
+            : "transform 0.15s ease-out",
+          pointerEvents: "none",
+          opacity: 0.55,
+          zIndex: 0,
+        }}
+      />
       <div
         style={{
           display: "flex",
