@@ -10,7 +10,9 @@ interface Props {
   onLongPress: () => void;
 }
 
-const HOLD_MS = 600;
+const HOLD_MS = 700;
+const HOLD_DELAY_MS = 200;
+const ANIM_MS = HOLD_MS - HOLD_DELAY_MS;
 
 export function ExerciseBlock({
   block,
@@ -19,14 +21,17 @@ export function ExerciseBlock({
   onPress,
   onLongPress,
 }: Props) {
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const triggerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const animStartRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suppressRef = useRef(false);
   const [holding, setHolding] = useState(false);
+  const [holdColor, setHoldColor] = useState<string>(palette.doneBorder);
 
   const handlePointerDown = () => {
     suppressRef.current = false;
-    setHolding(true);
-    timerRef.current = setTimeout(() => {
+    setHoldColor(done ? palette.accent : palette.doneBorder);
+    animStartRef.current = setTimeout(() => setHolding(true), HOLD_DELAY_MS);
+    triggerRef.current = setTimeout(() => {
       suppressRef.current = true;
       setHolding(false);
       onLongPress();
@@ -34,9 +39,13 @@ export function ExerciseBlock({
   };
 
   const handlePointerUp = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
+    if (animStartRef.current) {
+      clearTimeout(animStartRef.current);
+      animStartRef.current = null;
+    }
+    if (triggerRef.current) {
+      clearTimeout(triggerRef.current);
+      triggerRef.current = null;
     }
     setHolding(false);
   };
@@ -57,6 +66,7 @@ export function ExerciseBlock({
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerUp}
+      onPointerCancel={handlePointerUp}
       style={{
         position: "relative",
         border: `1px solid ${done ? palette.doneBorder : palette.border}`,
@@ -66,18 +76,18 @@ export function ExerciseBlock({
         transition: "border-color 0.4s",
         userSelect: "none",
         WebkitUserSelect: "none",
-        touchAction: "none",
+        touchAction: "manipulation",
       }}
     >
       <div
         style={{
           position: "absolute",
           inset: 0,
-          background: palette.doneBorder,
+          background: holdColor,
           transformOrigin: "left center",
           transform: `scaleX(${holding ? 1 : 0})`,
           transition: holding
-            ? `transform ${HOLD_MS}ms linear`
+            ? `transform ${ANIM_MS}ms linear`
             : "transform 0.15s ease-out",
           pointerEvents: "none",
           opacity: 0.55,
