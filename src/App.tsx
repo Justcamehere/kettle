@@ -14,10 +14,10 @@ import weeksData from "./data/weeks.json";
 import progressionData from "./data/progression.json";
 
 const TABS: { id: TabId; label: string }[] = [
-  { id: "principles", label: "Principles" },
   { id: "days", label: "Training Days" },
   { id: "weeks", label: "4-Week Wave" },
   { id: "progression", label: "Progression" },
+  { id: "principles", label: "Principles" },
 ];
 
 const SCHEDULE: { day: string; type: DayKey | null }[] = [
@@ -59,10 +59,15 @@ export function App() {
   };
 
   const markAllDone = (dayType: DayKey, blockIndex: number) => {
-    const block = daysData[dayType].blocks[blockIndex];
-    const next = Array(block.setCount).fill(true) as boolean[];
-    setSetsState((prev) => ({ ...prev, [`${dayType}:${blockIndex}`]: next }));
-    saveSets(today, dayType, blockIndex, next);
+    setSetsState((prev) => {
+      const key = `${dayType}:${blockIndex}`;
+      const block = daysData[dayType].blocks[blockIndex];
+      const current = prev[key] ?? Array(block.setCount).fill(false);
+      const allDone = current.length > 0 && current.every(Boolean);
+      const next = Array(block.setCount).fill(!allDone) as boolean[];
+      saveSets(today, dayType, blockIndex, next);
+      return { ...prev, [key]: next };
+    });
   };
 
   return (
@@ -186,6 +191,9 @@ export function App() {
           display: "flex",
           borderBottom: `1px solid ${palette.border}`,
           overflowX: "auto",
+          overflowY: "hidden",
+          touchAction: "pan-x",
+          overscrollBehaviorX: "contain",
         }}
       >
         {TABS.map((t) => (
